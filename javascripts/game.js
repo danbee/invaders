@@ -24,7 +24,7 @@ function create () {
   bullets = game.add.group();
   bullets.enableBody = true;
   bullets.physicsBodyType = Phaser.Physics.ARCADE;
-  bullets.createMultiple(5, 'bullet');
+  bullets.createMultiple(3, 'bullet');
   bullets.setAll('anchor.x', 0.5);
   bullets.setAll('anchor.y', 1);
   bullets.setAll('checkWorldBounds', true);
@@ -81,7 +81,7 @@ function fireBullet () {
 
     if (bullet) {
       //  And fire it
-      bullet.reset(player.x, player.y + 8);
+      bullet.reset(player.x, player.y - 16);
       bullet.body.velocity.y = -400;
       bullet.body.velocity.x = player.body.velocity.x / 4
       bulletTime = game.time.now + 500;

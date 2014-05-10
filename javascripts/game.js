@@ -14,6 +14,9 @@ var bulletTime = 0,
     score = 0,
     highScore = 0;
 
+var style = { font: "32px silkscreen", fill: "#666666", align: "center" },
+    boldStyle = { font: "bold 32px silkscreen", fill: "#ffffff", align: "center" };
+
 function create () {
   game.physics.startSystem(Phaser.Physics.ARCADE);
 
@@ -61,7 +64,6 @@ function create () {
   explosions.forEach(setupExplosion, this);
 
   // Text bits
-  var style = { font: "32px silkscreen", fill: "#666666", align: "right" };
   livesText = game.add.text(game.world.bounds.width - 16, 16, "LIVES: " + lives, style);
   livesText.anchor.set(1, 0);
 
@@ -71,11 +73,14 @@ function create () {
   highScoreText = game.add.text(16, 16, '', style);
   highScoreText.anchor.set(0, 0);
 
+  getHighScore();
+
   updateScore();
 
   // Setup controls
   cursors = game.input.keyboard.createCursorKeys();
   fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+  restartButton = game.input.keyboard.addKey(Phaser.Keyboard.S);
 }
 
 function setupExplosion (explosion) {
@@ -88,6 +93,11 @@ function update () {
   // Firing?
   if (fireButton.isDown && player.alive) {
     fireBullet();
+  }
+
+  // Restart?
+  if (restartButton.isDown && lives == 0) {
+    restartGame();
   }
 
   // Handle aliens dropping bombs
@@ -170,6 +180,13 @@ function updateLivesText () {
   livesText.text = "LIVES: " + lives;
 }
 
+function getHighScore () {
+  savedHighScore = Cookies.get('highScore');
+  if (savedHighScore != undefined) {
+    highScore = savedHighScore;
+  }
+}
+
 function updateScore () {
   if (score > highScore) {
     highScore = score;
@@ -192,10 +209,28 @@ function newWave () {
   }, 1000);
 }
 
+function restartGame () {
+  gameOverText.destroy();
+  restartText.destroy();
+
+  lives = 3
+  score = 0
+  updateScore();
+  updateLivesText();
+
+  respawnPlayer();
+  newWave();
+}
+
 function gameOver () {
-  var style = { font: "bold 32px silkscreen", fill: "#ffffff", align: "center" };
-  livesText = game.add.text(game.world.centerX, game.world.centerY, "GAME OVER", style);
-  livesText.anchor.set(0.5, 0.5);
+  setTimeout(function() {
+    gameOverText = game.add.text(game.world.centerX, game.world.centerY, "GAME OVER", boldStyle);
+    gameOverText.anchor.set(0.5, 0.5);
+    restartText = game.add.text(game.world.centerX, game.world.height - 16, "PRESS 'S' TO RESTART", style);
+    restartText.anchor.set(0.5, 1);
+
+    Cookies.set('highScore', highScore, { expires: '2078-12-31' });
+  }, 1000);
 }
 
 function createAliens () {

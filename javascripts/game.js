@@ -1,10 +1,10 @@
 var game = new Phaser.Game(1024, 576, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
 
 function preload () {
-  game.load.image('ship', '/images/ship.png');
-  game.load.image('bullet', '/images/bullet.png');
-  game.load.image('alien', '/images/alien.png');
-  game.load.image('bomb', '/images/bomb.png');
+  game.load.image('ship', 'images/ship.png');
+  game.load.image('bullet', 'images/bullet.png');
+  game.load.image('alien', 'images/alien.png');
+  game.load.image('bomb', 'images/bomb.png');
 }
 
 var bulletTime = 0;
@@ -37,6 +37,16 @@ function create () {
 
   createAliens();
 
+  // Initialize bombs
+  bombs = game.add.group();
+  bombs.enableBody = true;
+  bombs.physicsBodyType = Phaser.Physics.ARCADE;
+  bombs.createMultiple(10, 'bomb');
+  bombs.setAll('anchor.x', 0.5);
+  bombs.setAll('anchor.y', 0.5);
+  bombs.setAll('checkWorldBounds', true);
+  bombs.setAll('outOfBoundsKill', true);
+
   // Setup controls
   cursors = game.input.keyboard.createCursorKeys();
   fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -45,12 +55,16 @@ function create () {
 function update () {
   playerMovement();
 
-  //  Firing?
-  if (fireButton.isDown) {
+  // Firing?
+  if (fireButton.isDown && player.alive) {
     fireBullet();
   }
 
+  // Handle aliens dropping bombs
+  handleBombs();
+
   game.physics.arcade.overlap(bullets, aliens, bulletHitsAlien, null, this);
+  game.physics.arcade.overlap(bombs, player, bombHitsPlayer, null, this);
 }
 
 function playerMovement () {
@@ -80,7 +94,7 @@ function fireBullet () {
     bullet = bullets.getFirstExists(false);
 
     if (bullet) {
-      //  And fire it
+      // And fire it
       bullet.reset(player.x, player.y - 16);
       bullet.body.velocity.y = -400;
       bullet.body.velocity.x = player.body.velocity.x / 4
@@ -92,6 +106,11 @@ function fireBullet () {
 function bulletHitsAlien (bullet, alien) {
   bullet.kill();
   alien.kill();
+}
+
+function bombHitsPlayer (bomb, player) {
+  bomb.kill();
+  player.kill();
 }
 
 function createAliens () {
@@ -106,11 +125,32 @@ function createAliens () {
   aliens.x = 64;
   aliens.y = 50;
 
-  //  All this does is basically start the invaders moving. Notice we're moving the Group they belong to, rather than the invaders directly.
+  // All this does is basically start the invaders moving. Notice we're moving the Group they belong to, rather than the invaders directly.
   var tween = game.add.tween(aliens).to( { x: 284 }, 2500, Phaser.Easing.Sinusoidal.InOut, true, 0, 1000, true);
 
-  //  When the tween loops it calls descend
+  // When the tween loops it calls descend
   tween.onLoop.add(descend, this);
 }
 
-function descend () { aliens.y += 10; }
+function handleBombs () {
+  aliens.forEachAlive(function (alien) {
+    chanceOfDroppingBomb = game.rnd.integerInRange(0, 1000);
+    if (chanceOfDroppingBomb == 0) {
+      dropBomb(alien);
+    }
+  }, this)
+}
+
+function dropBomb (alien) {
+  bomb = bombs.getFirstExists(false);
+
+  if (bomb) {
+
+    // And drop it
+    bomb.reset(alien.x + aliens.x, alien.y + aliens.y + 16);
+    bomb.body.velocity.y = +100;
+    bomb.body.gravity.y = 250
+  }
+}
+
+function descend () { aliens.y += 8; }

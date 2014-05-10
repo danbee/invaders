@@ -11,7 +11,8 @@ function preload () {
 var bulletTime = 0,
     initialPlayerPosition = 512;
     lives = 3,
-    score = 0;
+    score = 0,
+    highScore = 0;
 
 function create () {
   game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -28,7 +29,7 @@ function create () {
   bullets = game.add.group();
   bullets.enableBody = true;
   bullets.physicsBodyType = Phaser.Physics.ARCADE;
-  bullets.createMultiple(3, 'bullet');
+  bullets.createMultiple(5, 'bullet');
   bullets.setAll('anchor.x', 0.5);
   bullets.setAll('anchor.y', 1);
   bullets.setAll('checkWorldBounds', true);
@@ -40,6 +41,7 @@ function create () {
   aliens.physicsBodyType = Phaser.Physics.ARCADE;
 
   createAliens();
+  animateAliens();
 
   // Initialize bombs
   bombs = game.add.group();
@@ -63,8 +65,13 @@ function create () {
   livesText = game.add.text(game.world.bounds.width - 16, 16, "LIVES: " + lives, style);
   livesText.anchor.set(1, 0);
 
-  scoreText = game.add.text(16, 16, "SCORE: " + score, style);
-  scoreText.anchor.set(0, 0);
+  scoreText = game.add.text(game.world.centerX, 16, '', style);
+  scoreText.anchor.set(0.5, 0);
+
+  highScoreText = game.add.text(16, 16, '', style);
+  highScoreText.anchor.set(0, 0);
+
+  updateScore();
 
   // Setup controls
   cursors = game.input.keyboard.createCursorKeys();
@@ -121,7 +128,7 @@ function fireBullet () {
       bullet.reset(player.x, player.y - 16);
       bullet.body.velocity.y = -400;
       bullet.body.velocity.x = player.body.velocity.x / 4
-      bulletTime = game.time.now + 500;
+      bulletTime = game.time.now + 400;
     }
   }
 }
@@ -130,7 +137,11 @@ function bulletHitsAlien (bullet, alien) {
   bullet.kill();
   explode(alien);
   score += 10;
-  updateScoreText();
+  updateScore();
+
+  if (aliens.countLiving() == 0) {
+    newWave()
+  }
 }
 
 function bombHitsPlayer (bomb, player) {
@@ -159,14 +170,25 @@ function updateLivesText () {
   livesText.text = "LIVES: " + lives;
 }
 
-function updateScoreText () {
-  scoreText.text = "SCORE: " + score;
+function updateScore () {
+  if (score > highScore) {
+    highScore = score;
+  }
+  scoreText.text = pad(score, 6);
+  highScoreText.text = "HIGH: " + pad(highScore, 6);
 }
 
 function respawnPlayer () {
   player.body.x = initialPlayerPosition;
-  setTimeout(function() {
+  setTimeout(function () {
     player.revive();
+  }, 1000);
+}
+
+function newWave () {
+  setTimeout(function () {
+    aliens.removeAll();
+    createAliens();
   }, 1000);
 }
 
@@ -187,7 +209,9 @@ function createAliens () {
 
   aliens.x = 64;
   aliens.y = 96;
+}
 
+function animateAliens () {
   // All this does is basically start the invaders moving. Notice we're moving the Group they belong to, rather than the invaders directly.
   var tween = game.add.tween(aliens).to( { x: 300 }, 2500, Phaser.Easing.Sinusoidal.InOut, true, 0, 1000, true);
 
@@ -220,4 +244,12 @@ function descend () {
   if (player.alive) {
     aliens.y += 8;
   }
+}
+
+function pad(number, length) {
+  var str = '' + number;
+  while (str.length < length) {
+    str = '0' + str;
+  }
+  return str;
 }

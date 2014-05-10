@@ -248,7 +248,7 @@ function createAliens () {
 
 function animateAliens () {
   // All this does is basically start the invaders moving. Notice we're moving the Group they belong to, rather than the invaders directly.
-  var tween = game.add.tween(aliens).to( { x: 300 }, 2500, Phaser.Easing.Sinusoidal.InOut, true, 0, 1000, true);
+  var tween = game.add.tween(aliens).to( { x: 308 }, 2500, Phaser.Easing.Sinusoidal.InOut, true, 0, 1000, true);
 
   // When the tween loops it calls descend
   tween.onLoop.add(descend, this);

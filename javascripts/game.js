@@ -39,10 +39,6 @@ function create () {
   bullets.setAll('outOfBoundsKill', true);
 
   // Initialize aliens
-  aliens = game.add.group();
-  aliens.enableBody = true;
-  aliens.physicsBodyType = Phaser.Physics.ARCADE;
-
   createAliens();
   animateAliens();
 
@@ -150,7 +146,7 @@ function bulletHitsAlien (bullet, alien) {
   updateScore();
 
   if (aliens.countLiving() == 0) {
-    newWave()
+    newWave();
   }
 }
 
@@ -206,6 +202,7 @@ function newWave () {
   setTimeout(function () {
     aliens.removeAll();
     createAliens();
+    animateAliens();
   }, 1000);
 }
 
@@ -234,6 +231,10 @@ function gameOver () {
 }
 
 function createAliens () {
+  aliens = game.add.group();
+  aliens.enableBody = true;
+  aliens.physicsBodyType = Phaser.Physics.ARCADE;
+
   for (var y = 0; y < 4; y++) {
     for (var x = 0; x < 10; x++) {
       var alien = aliens.create(x * 72, y * 48, 'alien');
@@ -244,6 +245,10 @@ function createAliens () {
 
   aliens.x = 64;
   aliens.y = 96;
+
+  aliens.forEach(function (alien, i) {
+    game.add.tween(alien).to( { y: alien.body.y + 5 }, 500, Phaser.Easing.Sinusoidal.InOut, true, game.rnd.integerInRange(0, 500), 1000, true);
+  })
 }
 
 function animateAliens () {
@@ -277,7 +282,8 @@ function dropBomb (alien) {
 
 function descend () {
   if (player.alive) {
-    aliens.y += 8;
+    //aliens.y += 8;
+    game.add.tween(aliens).to( { y: aliens.y + 8 }, 2500, Phaser.Easing.Linear.None, true, 0, 0, false);
   }
 }
 

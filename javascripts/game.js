@@ -6,6 +6,10 @@ function preload () {
   game.load.image('alien', 'images/alien.png');
   game.load.image('bomb', 'images/bomb.png');
   game.load.spritesheet('explosion', 'images/explosion.png', 80, 80);
+
+  game.load.audio('shoot', 'sounds/shoot.wav');
+  game.load.audio('explode', 'sounds/explode.wav');
+  game.load.audio('bomb', 'sounds/bomb.wav');
 }
 
 var bulletTime = 0,
@@ -73,6 +77,11 @@ function create () {
 
   updateScore();
 
+  // Initialize sounds
+  shootSound = game.add.audio('shoot', 1, false);
+  explodeSound = game.add.audio('explode', 1, false);
+  bombSound = game.add.audio('bomb', 1, false);
+
   // Setup controls
   cursors = game.input.keyboard.createCursorKeys();
   fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -131,6 +140,7 @@ function fireBullet () {
 
     if (bullet) {
       // And fire it
+      shootSound.play();
       bullet.reset(player.x, player.y - 16);
       bullet.body.velocity.y = -400;
       bullet.body.velocity.x = player.body.velocity.x / 4
@@ -167,6 +177,7 @@ function explode (entity) {
   entity.kill();
 
   // And create an explosion :)
+  explodeSound.play();
   var explosion = explosions.getFirstExists(false);
   explosion.reset(entity.body.x + (entity.width / 2), entity.body.y + (entity.height / 2));
   explosion.play('explode', 30, false, true);
@@ -273,6 +284,7 @@ function dropBomb (alien) {
 
   if (bomb && player.alive) {
 
+    bombSound.play();
     // And drop it
     bomb.reset(alien.x + aliens.x, alien.y + aliens.y + 16);
     bomb.body.velocity.y = +100;

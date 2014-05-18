@@ -1,17 +1,5 @@
 var game = new Phaser.Game(1024, 576, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
 
-function preload () {
-  game.load.image('ship', 'images/ship.png');
-  game.load.image('bullet', 'images/bullet.png');
-  game.load.image('alien', 'images/alien.png');
-  game.load.image('bomb', 'images/bomb.png');
-  game.load.spritesheet('explosion', 'images/explosion.png', 80, 80);
-
-  game.load.audio('shoot', 'sounds/shoot.wav');
-  game.load.audio('explode', 'sounds/explode.wav');
-  game.load.audio('bomb', 'sounds/bomb.wav');
-}
-
 var bulletTime = 0,
     initialPlayerPosition = 512;
     lives = 3,
@@ -21,95 +9,8 @@ var bulletTime = 0,
 var style = { font: "32px silkscreen", fill: "#666666", align: "center" },
     boldStyle = { font: "bold 32px silkscreen", fill: "#ffffff", align: "center" };
 
-function create () {
-  game.physics.startSystem(Phaser.Physics.ARCADE);
-
-  // Initialize player
-  player = game.add.sprite(initialPlayerPosition, 540, 'ship');
-  player.anchor.setTo(0.5, 0.5);
-  game.physics.enable(player, Phaser.Physics.ARCADE);
-
-  player.body.bounce.x = 0.5;
-  player.body.collideWorldBounds = true;
-
-  // Initialize bullets
-  bullets = game.add.group();
-  bullets.enableBody = true;
-  bullets.physicsBodyType = Phaser.Physics.ARCADE;
-  bullets.createMultiple(5, 'bullet');
-  bullets.setAll('anchor.x', 0.5);
-  bullets.setAll('anchor.y', 1);
-  bullets.setAll('checkWorldBounds', true);
-  bullets.setAll('outOfBoundsKill', true);
-
-  // Initialize aliens
-  createAliens();
-  animateAliens();
-
-  // Initialize bombs
-  bombs = game.add.group();
-  bombs.enableBody = true;
-  bombs.physicsBodyType = Phaser.Physics.ARCADE;
-  bombs.createMultiple(10, 'bomb');
-  bombs.setAll('anchor.x', 0.5);
-  bombs.setAll('anchor.y', 0.5);
-  bombs.setAll('checkWorldBounds', true);
-  bombs.setAll('outOfBoundsKill', true);
-
-  // Initialize explosions
-  explosions = game.add.group();
-  explosions.createMultiple(10, 'explosion');
-  explosions.setAll('anchor.x', 0.5);
-  explosions.setAll('anchor.y', 0.5);
-  explosions.forEach(setupExplosion, this);
-
-  // Text bits
-  livesText = game.add.text(game.world.bounds.width - 16, 16, "LIVES: " + lives, style);
-  livesText.anchor.set(1, 0);
-
-  scoreText = game.add.text(game.world.centerX, 16, '', style);
-  scoreText.anchor.set(0.5, 0);
-
-  highScoreText = game.add.text(16, 16, '', style);
-  highScoreText.anchor.set(0, 0);
-
-  getHighScore();
-
-  updateScore();
-
-  // Initialize sounds
-  shootSound = game.add.audio('shoot', 1, false);
-  explodeSound = game.add.audio('explode', 1, false);
-  bombSound = game.add.audio('bomb', 1, false);
-
-  // Setup controls
-  cursors = game.input.keyboard.createCursorKeys();
-  fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-  restartButton = game.input.keyboard.addKey(Phaser.Keyboard.S);
-}
-
 function setupExplosion (explosion) {
   explosion.animations.add('explode');
-}
-
-function update () {
-  playerMovement();
-
-  // Firing?
-  if (fireButton.isDown && player.alive) {
-    fireBullet();
-  }
-
-  // Restart?
-  if (restartButton.isDown && lives == 0) {
-    restartGame();
-  }
-
-  // Handle aliens dropping bombs
-  handleBombs();
-
-  game.physics.arcade.overlap(bullets, aliens, bulletHitsAlien, null, this);
-  game.physics.arcade.overlap(bombs, player, bombHitsPlayer, null, this);
 }
 
 function playerMovement () {
